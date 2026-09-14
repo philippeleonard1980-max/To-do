@@ -1,0 +1,315 @@
+// AI Talk — data model
+//
+// Targets SQLite by default so the project runs with zero external services.
+// SQLite has no native enum or array types, so those columns are plain strings
+// validated in TypeScript (see src/lib/constants.ts) and JSON blobs are stored
+// as strings through the helpers in src/lib/json.ts.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Accounts
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  displayName  String
+  avatarUrl    String?
+  bio          String?
+
+  // "user" | "admin"
+  role String @default("user")
+
+  // "free" | "plus" | "pro"
+  plan            String   @default("free")
+  credits         Int      @default(300)
+  creditsResetAt  DateTime @default(now())
+
+  // Viewer preferences (JSON: theme, defaultModel, temperature, ...)
+  settings String @default("{}")
+
+  // Mature-theme opt-in, only meaningful once birthdate proves adulthood.
+  birthdate       DateTime?
+  allowMature     Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  characters Character[]    @relation("CharacterCreator")
+  personas   Persona[]
+  chats      Chat[]
+  favorites  Favorite[]
+  following  Follow[]       @relation("Follower")
+  followers  Follow[]       @relation("Following")
+  ledger     CreditEntry[]
+  reports    Report[]       @relation("Reporter")
+
+  @@index([createdAt])
+}
+
+/// A user-side identity the character speaks to ("you" in the roleplay).
+model Persona {
+  id          String  @id @default(cuid())
+  userId      String
+  name        String
+  description String  @default("")
+  avatarUrl   String?
+  isDefault   Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chats Chat[]
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Characters
+// ---------------------------------------------------------------------------
+
+model Character {
+  id        String @id @default(cuid())
+  creatorId String
+
+  name        String
+  tagline     String @default("")
+  /// Long-form public blurb shown on the character page.
+  description String @default("")
+  avatarUrl   String?
+  /// Accent colour used when no avatar image is set.
+  accent      String @default("violet")
+
+  // --- Roleplay definition ---
+  /// The character's own voice, habits, values, speech patterns.
+  personality String @default("")
+  /// Where the story starts: setting, situation, relationship to the user.
+  scenario    String @default("")
+  /// First message the character sends when a chat opens.
+  greeting    String @default("")
+  /// Few-shot sample exchanges that anchor tone. One exchange per line pair.
+  exampleDialogue String @default("")
+  /// Advanced: replaces the generated system prompt entirely when set.
+  systemPromptOverride String?
+
+  // "public" | "unlisted" | "private"
+  visibility String  @default("public")
+  /// Flags themes intended for adult users (violence, dark topics).
+  isMature   Boolean @default(false)
+
+  // Denormalised counters kept in sync on write.
+  chatCount Int @default(0)
+  likeCount Int @default(0)
+  viewCount Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  creator      User             @relation("CharacterCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  tags         CharacterTag[]
+  favorites    Favorite[]
+  participants ChatParticipant[]
+  messages     Message[]
+  reports      Report[]
+
+  @@index([visibility, createdAt])
+  @@index([visibility, likeCount])
+  @@index([visibility, chatCount])
+  @@index([creatorId])
+}
+
+model Tag {
+  id    String @id @default(cuid())
+  name  String @unique
+  slug  String @unique
+  /// Optional grouping shown as a rail on the discover page.
+  group String @default("general")
+
+  characters CharacterTag[]
+}
+
+model CharacterTag {
+  characterId String
+  tagId       String
+
+  character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  tag       Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([characterId, tagId])
+  @@index([tagId])
+}
+
+model Favorite {
+  userId      String
+  characterId String
+  createdAt   DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@id([userId, characterId])
+  @@index([characterId])
+}
+
+model Follow {
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@index([followingId])
+}
+
+// ---------------------------------------------------------------------------
+// Conversations
+// ---------------------------------------------------------------------------
+
+model Chat {
+  id        String  @id @default(cuid())
+  userId    String
+  personaId String?
+
+  title String @default("New chat")
+  /// "single" | "group"
+  mode  String @default("single")
+  /// Per-chat generation overrides (JSON: model, temperature, maxTokens, ...).
+  settings String @default("{}")
+
+  pinned   Boolean @default(false)
+  archived Boolean @default(false)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastMessageAt DateTime @default(now())
+
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  persona      Persona?          @relation(fields: [personaId], references: [id], onDelete: SetNull)
+  participants ChatParticipant[]
+  messages     Message[]
+  memories     Memory[]
+
+  @@index([userId, archived, lastMessageAt])
+}
+
+/// Characters taking part in a chat. Single chats have exactly one row;
+/// group chats have several and use `order` for round-robin turn taking.
+model ChatParticipant {
+  chatId      String
+  characterId String
+  order       Int    @default(0)
+
+  chat      Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@id([chatId, characterId])
+  @@index([characterId])
+}
+
+/// One turn in a conversation. Assistant turns can hold several regenerated
+/// variants ("swipes"); `activeVariant` picks the one currently shown.
+model Message {
+  id     String @id @default(cuid())
+  chatId String
+
+  /// "user" | "assistant" | "system"
+  role String
+  /// Which character spoke, for assistant turns in group chats.
+  characterId String?
+  /// Persona name captured at send time so old turns keep their attribution.
+  authorName String?
+
+  position      Int @default(0)
+  activeVariant Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  chat      Chat             @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  character Character?       @relation(fields: [characterId], references: [id], onDelete: SetNull)
+  variants  MessageVariant[]
+
+  @@index([chatId, position])
+}
+
+model MessageVariant {
+  id        String @id @default(cuid())
+  messageId String
+  index     Int    @default(0)
+
+  content   String
+  model     String?
+  tokensIn  Int     @default(0)
+  tokensOut Int     @default(0)
+  /// Set when generation was cut short or refused, for UI affordances.
+  finishReason String?
+
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, index])
+}
+
+/// Rolling summary of older turns so long chats stay inside the context window.
+model Memory {
+  id      String @id @default(cuid())
+  chatId  String
+  summary String
+  /// Number of messages folded into this summary.
+  coversThrough Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+}
+
+// ---------------------------------------------------------------------------
+// Billing + moderation
+// ---------------------------------------------------------------------------
+
+model CreditEntry {
+  id     String @id @default(cuid())
+  userId String
+  /// Negative for spend, positive for grants.
+  delta  Int
+  reason String
+  model  String?
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model Report {
+  id          String  @id @default(cuid())
+  reporterId  String
+  characterId String?
+  reason      String
+  detail      String  @default("")
+  /// "open" | "reviewed" | "dismissed"
+  status      String  @default("open")
+
+  createdAt DateTime @default(now())
+
+  reporter  User       @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  character Character? @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+}
