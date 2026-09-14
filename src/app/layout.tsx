@@ -24,7 +24,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" data-theme={theme === "system" ? undefined : theme} suppressHydrationWarning>
       <body className="min-h-dvh">
-        <SiteHeader viewer={viewer} mockProvider={isMockProvider()} />
+        <SiteHeader
+          viewer={
+            viewer && {
+              username: viewer.username,
+              displayName: viewer.displayName,
+              avatarUrl: viewer.avatarUrl,
+              role: viewer.role,
+              plan: viewer.plan,
+              credits: viewer.credits,
+            }
+          }
+          mockProvider={isMockProvider()}
+        />
         <main className="mx-auto w-full">{children}</main>
       </body>
     </html>

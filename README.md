@@ -59,6 +59,12 @@ Sign in as **demo@aitalk.local** / **demo1234**, or create your own account.
 - Plans (Free / Plus / Pro) with a monthly message-credit quota, per-model
   pricing, gated model access and feature ceilings.
 
+**Admin panel** (`/admin`)
+- Moderation queue for user reports, character search with unpublish/delete,
+  account management (suspend, change plan, grant or revoke admin), and an
+  append-only audit log of every moderator action.
+- Suspension revokes a live session on the next request, not at token expiry.
+
 **Safety**
 - A content policy module screens character definitions before they save, and
   appends non-negotiable rules *after* the character definition in every
@@ -140,6 +146,69 @@ headers are already flushed during streaming SSR.
 
 ---
 
+## Admin panel and its security model
+
+The panel lives at `/admin` and is gated on the `admin` role.
+
+**Creating the first administrator** is deliberately impossible over HTTP —
+this repository is public, so a web-reachable bootstrap would be a back door.
+It requires shell access to the server:
+
+```bash
+npm run admin:grant -- you@example.com      # grant
+npm run admin:grant -- you@example.com --revoke
+```
+
+Once one admin exists, they can promote others from the Users tab.
+
+The controls, and why each is there:
+
+- **Roles are never in the session token.** The JWT carries only a user id, so
+  revoking admin takes effect on the next request rather than when a token
+  expires. `requireAdmin()` re-reads the role from the database every call.
+- **Non-admins get 404, not 403.** A 403 confirms the panel exists.
+- **Every admin page gates itself**, not just the layout. App Router renders
+  layouts and pages in parallel, so a layout-only check still lets the page run
+  its queries and stream its markup. This was a real leak found in testing:
+  admin page structure reached a non-admin's HTML payload. Each page now calls
+  `requireAdmin()` before touching the database.
+- **No privilege escalation path.** No endpoint accepts `role`, `credits` or
+  `suspended` from a request body. `/api/me` validates against a schema that
+  has no such fields and writes an explicit column allowlist.
+- **Lockout protection.** An admin cannot suspend or demote themselves, and the
+  last remaining active admin cannot be demoted.
+- **Audit log.** Every action is appended with the actor, target and a
+  server-generated description. Nothing in it comes from a request body.
+- **Sessions use `SameSite=Lax`, `HttpOnly` cookies**, which blocks the
+  cross-site POST vector for CSRF.
+
+Verify all of it against a running instance:
+
+```bash
+npm run build && npm start &
+npm run admin:grant -- demo@aitalk.local
+BASE=http://localhost:3000 npm run security:check
+```
+
+That script asserts 21 access-control properties and exits non-zero on any
+failure.
+
+## Testing
+
+```bash
+npm test                                    # unit tests
+npm run typecheck                           # tsc --noEmit
+BASE=http://localhost:3000 npm run smoke    # browser crawl of every page
+BASE=http://localhost:3000 npm run security:check
+```
+
+`npm run smoke` drives a real browser over every route signed out and signed
+in, sends a chat message, and reports page errors, console errors, 5xx
+responses, blank renders and horizontal overflow. `THEME=light` and `MOBILE=1`
+cover the other viewports.
+
+---
+
 ## Commands
 
 | | |
@@ -152,6 +221,9 @@ headers are already flushed during streaming SSR.
 | `npm run setup` | Generate client + create database + seed |
 | `npm run db:reset` | Drop and rebuild the database from scratch |
 | `npm run db:seed` | Re-seed (idempotent) |
+| `npm run admin:grant -- <email>` | Grant the admin role (add `--revoke` to remove) |
+| `npm run smoke` | Browser crawl of every page (needs a running server) |
+| `npm run security:check` | Access-control assertions (needs a running server) |
 
 ## Configuration
 
@@ -169,10 +241,21 @@ Every value has a working default except the API key. See `.env.example`.
 
 ## Deploying
 
-Two things need changing for anything public:
+Three things need changing for anything public:
 
 1. **`AUTH_SECRET`** — generate with `openssl rand -base64 48`.
-2. **Avatar uploads** write to `public/uploads` on local disk. On ephemeral or
+2. **Delete or rename the seeded demo account.** `demo@aitalk.local` ships with
+   the password `demo1234`, documented in this README and in the seed script.
+   It is created as an ordinary user and is never an admin by default, but on a
+   public instance it is a known credential — remove it, or don't run the seed:
+
+   ```bash
+   npm run setup   # includes the demo account and sample characters
+   # or, for a clean instance:
+   npx prisma db push   # schema only, no seed data
+   ```
+
+3. **Avatar uploads** write to `public/uploads` on local disk. On ephemeral or
    multi-instance hosting, swap `src/app/api/upload/route.ts` for object
    storage. Its contract (multipart in, `{ url }` out) is all the client
    depends on.

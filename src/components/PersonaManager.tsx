@@ -127,14 +127,14 @@ export function PersonaManager({ initial, limit }: { initial: PersonaRow[]; limi
               <div className="flex gap-0.5">
                 <button
                   onClick={() => startEdit(persona)}
-                  className="rounded p-1.5 text-dim transition hover:bg-white/5 hover:text-[var(--text)]"
+                  className="rounded p-1.5 text-dim transition hover:bg-[var(--overlay-weak)] hover:text-[var(--text)]"
                   aria-label={`Edit ${persona.name}`}
                 >
                   <Pencil size={14} />
                 </button>
                 <button
                   onClick={() => remove(persona.id)}
-                  className="rounded p-1.5 text-dim transition hover:bg-white/5 hover:text-rose-400"
+                  className="rounded p-1.5 text-dim transition hover:bg-[var(--overlay-weak)] hover:text-rose-400"
                   aria-label={`Delete ${persona.name}`}
                 >
                   <Trash2 size={14} />

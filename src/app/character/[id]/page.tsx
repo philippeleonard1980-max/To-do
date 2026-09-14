@@ -131,9 +131,9 @@ export default async function CharacterPage({ params }: Params) {
           )}
 
           {blocked ? (
-            <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-5">
-              <h2 className="text-sm font-semibold text-amber-200">This character is marked 18+</h2>
-              <p className="mt-1.5 text-sm text-amber-100/80">
+            <div className="rounded-2xl border border-[var(--tone-warn-border)] bg-[var(--tone-warn-bg)] p-5">
+              <h2 className="text-sm font-semibold text-[var(--tone-warn-strong)]">This character is marked 18+</h2>
+              <p className="mt-1.5 text-sm text-[var(--tone-warn-text)]">
                 Confirm your date of birth in settings to open it. Mature here means adult themes
                 — dark subject matter and adult relationships — handled with restraint, not
                 explicit content.

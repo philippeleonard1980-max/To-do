@@ -117,3 +117,24 @@ export const reportSchema = z.object({
   reason: trimmed(60).min(1, "Tell us what's wrong."),
   detail: trimmed(2000).default(""),
 });
+
+// --- Admin -----------------------------------------------------------------
+// Note these schemas are only ever parsed inside routes that have already
+// passed `requireAdmin()`. They constrain what an admin may change; they are
+// not, by themselves, an access control.
+
+export const adminUserActionSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("suspend"), reason: trimmed(200).default("") }),
+  z.object({ action: z.literal("unsuspend") }),
+  z.object({ action: z.literal("setRole"), role: z.enum(["user", "admin"]) }),
+  z.object({ action: z.literal("setPlan"), plan: z.enum(PLANS) }),
+]);
+
+export const adminCharacterActionSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("unpublish") }),
+  z.object({ action: z.literal("delete") }),
+]);
+
+export const adminReportActionSchema = z.object({
+  status: z.enum(["reviewed", "dismissed"]),
+});

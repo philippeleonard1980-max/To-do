@@ -15,7 +15,19 @@ import { SESSION_COOKIE } from "@/lib/session-cookie";
  * pages still re-verify the viewer, so this is defence in depth, not the only
  * gate.
  */
-const PROTECTED = [/^\/chats/, /^\/chat\//, /^\/create/, /^\/personas/, /^\/settings/, /^\/pricing/, /^\/group/, /^\/character\/[^/]+\/edit/];
+const PROTECTED = [
+  /^\/chats/,
+  /^\/chat\//,
+  /^\/create/,
+  /^\/personas/,
+  /^\/settings/,
+  /^\/pricing/,
+  /^\/group/,
+  /^\/character\/[^/]+\/edit/,
+  // Signed-out requests are bounced here; the admin *role* is verified in
+  // src/lib/admin.ts, which the middleware cannot do without database access.
+  /^\/admin/,
+];
 const AUTH_PAGES = [/^\/login/, /^\/register/];
 
 async function hasValidSession(request: NextRequest): Promise<boolean> {

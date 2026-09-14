@@ -364,7 +364,7 @@ export function CharacterForm({ initial, mode }: { initial: CharacterDraft; mode
             {VISIBILITIES.map((option) => (
               <label
                 key={option}
-                className="flex cursor-pointer items-start gap-2.5 rounded-lg p-2 transition hover:bg-white/5"
+                className="flex cursor-pointer items-start gap-2.5 rounded-lg p-2 transition hover:bg-[var(--overlay-weak)]"
               >
                 <input
                   type="radio"

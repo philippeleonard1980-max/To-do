@@ -13,7 +13,10 @@
     "db:push": "prisma db push",
     "db:seed": "node --experimental-strip-types prisma/seed.ts",
     "db:reset": "rm -f prisma/dev.db && prisma db push && npm run db:seed",
-    "setup": "prisma generate && prisma db push && npm run db:seed"
+    "setup": "prisma generate && prisma db push && npm run db:seed",
+    "admin:grant": "tsx scripts/grant-admin.ts",
+    "smoke": "node scripts/smoke-crawl.mjs",
+    "security:check": "bash scripts/security-check.sh"
   },
   "prisma": {
     "seed": "node --experimental-strip-types prisma/seed.ts"
@@ -37,6 +40,7 @@
     "@types/node": "^22.18.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
+    "playwright": "^1.63.0",
     "postcss": "^8.5.0",
     "prisma": "^6.19.0",
     "tailwindcss": "^4.1.0",

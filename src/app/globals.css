@@ -42,9 +42,35 @@
   --text-faint: var(--color-ink-400);
   --accent: var(--color-brand-500);
   --accent-soft: #8b5cf622;
+
+  /* Neutral overlays. On dark these are white washes; on light they flip to
+     black washes, so `hover` and chip backgrounds stay visible in both. */
+  --overlay-weak: rgb(255 255 255 / 0.05);
+  --overlay: rgb(255 255 255 / 0.08);
+  --overlay-strong: rgb(255 255 255 / 0.12);
+
+  /* Semantic tones. Text colours are picked per theme for contrast rather
+     than reused across both, where the light values wash out. */
+  --tone-accent-bg: rgb(139 92 246 / 0.15);
+  --tone-accent-text: #c4b5fd;
+  --tone-warn-bg: rgb(245 158 11 / 0.15);
+  --tone-warn-text: #fcd34d;
+  --tone-warn-border: rgb(245 158 11 / 0.4);
+  --tone-warn-strong: #fde68a;
+  --tone-error-bg: rgb(244 63 94 / 0.1);
+  --tone-error-text: #fecdd3;
+  --tone-error-border: rgb(244 63 94 / 0.4);
+  --tone-info-bg: rgb(14 165 233 / 0.1);
+  --tone-info-text: #bae6fd;
+  --tone-info-border: rgb(14 165 233 / 0.4);
+  --tone-success-bg: rgb(16 185 129 / 0.1);
+  --tone-success-text: #a7f3d0;
+  --tone-success-border: rgb(16 185 129 / 0.4);
+
   color-scheme: dark;
 }
 
+/* Explicit light choice. */
 :root[data-theme="light"] {
   --surface: #faf9fc;
   --surface-raised: #ffffff;
@@ -53,9 +79,68 @@
   --border-strong: #d5d2e2;
   --text: #17172a;
   --text-dim: #55556b;
-  --text-faint: #7a7a92;
-  --accent-soft: #8b5cf618;
+  --text-faint: #6b6b82;
+  --accent-soft: rgb(139 92 246 / 0.1);
+
+  --overlay-weak: rgb(17 17 34 / 0.04);
+  --overlay: rgb(17 17 34 / 0.07);
+  --overlay-strong: rgb(17 17 34 / 0.11);
+
+  --tone-accent-bg: rgb(139 92 246 / 0.12);
+  --tone-accent-text: #6d28d9;
+  --tone-warn-bg: rgb(245 158 11 / 0.16);
+  --tone-warn-text: #92400e;
+  --tone-warn-border: rgb(217 119 6 / 0.45);
+  --tone-warn-strong: #78350f;
+  --tone-error-bg: rgb(244 63 94 / 0.1);
+  --tone-error-text: #9f1239;
+  --tone-error-border: rgb(225 29 72 / 0.45);
+  --tone-info-bg: rgb(14 165 233 / 0.1);
+  --tone-info-text: #075985;
+  --tone-info-border: rgb(2 132 199 / 0.45);
+  --tone-success-bg: rgb(16 185 129 / 0.12);
+  --tone-success-text: #065f46;
+  --tone-success-border: rgb(5 150 105 / 0.45);
+
   color-scheme: light;
+}
+
+/* "System" theme stores no data-theme attribute, so follow the OS preference.
+   Guarded so an explicit dark choice still wins on a light-mode machine. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]):not([data-theme="light"]) {
+  --surface: #faf9fc;
+  --surface-raised: #ffffff;
+  --surface-overlay: #ffffff;
+  --border: #e6e4ee;
+  --border-strong: #d5d2e2;
+  --text: #17172a;
+  --text-dim: #55556b;
+  --text-faint: #6b6b82;
+  --accent-soft: rgb(139 92 246 / 0.1);
+
+  --overlay-weak: rgb(17 17 34 / 0.04);
+  --overlay: rgb(17 17 34 / 0.07);
+  --overlay-strong: rgb(17 17 34 / 0.11);
+
+  --tone-accent-bg: rgb(139 92 246 / 0.12);
+  --tone-accent-text: #6d28d9;
+  --tone-warn-bg: rgb(245 158 11 / 0.16);
+  --tone-warn-text: #92400e;
+  --tone-warn-border: rgb(217 119 6 / 0.45);
+  --tone-warn-strong: #78350f;
+  --tone-error-bg: rgb(244 63 94 / 0.1);
+  --tone-error-text: #9f1239;
+  --tone-error-border: rgb(225 29 72 / 0.45);
+  --tone-info-bg: rgb(14 165 233 / 0.1);
+  --tone-info-text: #075985;
+  --tone-info-border: rgb(2 132 199 / 0.45);
+  --tone-success-bg: rgb(16 185 129 / 0.12);
+  --tone-success-text: #065f46;
+  --tone-success-border: rgb(5 150 105 / 0.45);
+
+  color-scheme: light;
+  }
 }
 
 html,

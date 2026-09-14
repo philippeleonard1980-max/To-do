@@ -107,6 +107,10 @@ export async function getViewer(): Promise<Viewer | null> {
   let user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return null;
 
+  // A suspension takes effect immediately, even with a valid session cookie:
+  // treat the request as signed out rather than letting the account act.
+  if (user.suspended) return null;
+
   const monthMs = 30 * 24 * 60 * 60 * 1000;
   if (Date.now() - user.creditsResetAt.getTime() > monthMs) {
     const grant = planInfo(user.plan as Plan).credits;

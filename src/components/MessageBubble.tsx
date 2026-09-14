@@ -193,7 +193,7 @@ function IconButton({
       disabled={disabled}
       title={label}
       aria-label={label}
-      className="rounded p-1 text-[var(--text-faint)] transition hover:bg-white/10 hover:text-[var(--text)] disabled:opacity-30 disabled:hover:bg-transparent"
+      className="rounded p-1 text-[var(--text-faint)] transition hover:bg-[var(--overlay-strong)] hover:text-[var(--text)] disabled:opacity-30 disabled:hover:bg-transparent"
     >
       {children}
     </button>

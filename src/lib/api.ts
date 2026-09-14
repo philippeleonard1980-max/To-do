@@ -38,6 +38,11 @@ export function errorResponse(error: unknown) {
       { status: 422 },
     );
   }
+  // A malformed request body is the client's error, not ours.
+  if (error instanceof SyntaxError && /JSON/i.test(error.message)) {
+    return NextResponse.json({ error: "Request body is not valid JSON." }, { status: 400 });
+  }
+
   const status = (error as { status?: number })?.status;
   if (typeof status === "number" && status >= 400 && status < 600) {
     return NextResponse.json({ error: (error as Error).message }, { status });

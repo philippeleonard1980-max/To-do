@@ -281,7 +281,7 @@ export function SettingsForm({
               Explicit sexual content stays off regardless. Needs a date of birth showing you&apos;re
               18 or older.
               {!viewer.isAdult && !birthdate && (
-                <strong className="mt-1 block text-amber-400">
+                <strong className="mt-1 block text-[var(--tone-warn-text)]">
                   Add your date of birth above first.
                 </strong>
               )}
@@ -305,7 +305,7 @@ export function SettingsForm({
         </label>
       </section>
 
-      <div className="sticky bottom-4 border-t border-[var(--border)] bg-[var(--surface)] pt-4">
+      <div className="sticky bottom-0 z-10 border-t border-[var(--border)] bg-[var(--surface)] py-4">
         <Button type="submit" size="lg" loading={busy}>
           Save changes
         </Button>

@@ -316,7 +316,7 @@ export function ChatView({
       <header className="flex h-14 shrink-0 items-center gap-3 border-b border-[var(--border)] px-3">
         <Link
           href="/chats"
-          className="rounded-lg p-2 text-dim transition hover:bg-white/5 hover:text-[var(--text)]"
+          className="rounded-lg p-2 text-dim transition hover:bg-[var(--overlay-weak)] hover:text-[var(--text)]"
           aria-label="Back to chats"
         >
           <ArrowLeft size={18} />
@@ -353,7 +353,7 @@ export function ChatView({
           aria-expanded={showSettings}
           className={clsx(
             "rounded-lg p-2 transition",
-            showSettings ? "bg-white/10 text-[var(--text)]" : "text-dim hover:bg-white/5",
+            showSettings ? "bg-[var(--overlay-strong)] text-[var(--text)]" : "text-dim hover:bg-[var(--overlay-weak)]",
           )}
         >
           <Settings2 size={17} />
@@ -646,7 +646,7 @@ export function ChatView({
                     <Link
                       key={c.id}
                       href={`/character/${c.id}`}
-                      className="flex items-center gap-2.5 rounded-lg p-2 transition hover:bg-white/5"
+                      className="flex items-center gap-2.5 rounded-lg p-2 transition hover:bg-[var(--overlay-weak)]"
                     >
                       <Avatar name={c.name} src={c.avatarUrl} accent={c.accent} size="sm" />
                       <span className="min-w-0">

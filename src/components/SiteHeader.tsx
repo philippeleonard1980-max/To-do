@@ -9,6 +9,7 @@ import {
   MessageCircle,
   Plus,
   Settings,
+  ShieldCheck,
   Sparkles,
   User,
   Users,
@@ -19,7 +20,16 @@ import clsx from "clsx";
 
 import { Avatar } from "./Avatar";
 import { Badge, Button } from "./ui";
-import type { Viewer } from "@/lib/auth";
+/** Only what the header renders — deliberately narrower than `Viewer`, so
+ *  fields like the account email never reach the client payload. */
+export interface HeaderViewer {
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+  role: string;
+  plan: string;
+  credits: number;
+}
 
 const NAV = [
   { href: "/", label: "Discover", icon: Compass },
@@ -27,7 +37,7 @@ const NAV = [
   { href: "/personas", label: "Personas", icon: Users },
 ];
 
-export function SiteHeader({ viewer, mockProvider }: { viewer: Viewer | null; mockProvider: boolean }) {
+export function SiteHeader({ viewer, mockProvider }: { viewer: HeaderViewer | null; mockProvider: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -85,8 +95,8 @@ export function SiteHeader({ viewer, mockProvider }: { viewer: Viewer | null; mo
                 className={clsx(
                   "flex h-9 items-center gap-2 rounded-lg px-3 text-sm transition",
                   active
-                    ? "bg-white/[0.08] font-medium text-[var(--text)]"
-                    : "text-dim hover:bg-white/5 hover:text-[var(--text)]",
+                    ? "bg-[var(--overlay)] font-medium text-[var(--text)]"
+                    : "text-dim hover:bg-[var(--overlay-weak)] hover:text-[var(--text)]",
                 )}
               >
                 <Icon size={16} />
@@ -117,7 +127,7 @@ export function SiteHeader({ viewer, mockProvider }: { viewer: Viewer | null; mo
                 onClick={() => setMenuOpen((v) => !v)}
                 aria-haspopup="menu"
                 aria-expanded={menuOpen}
-                className="ml-1 flex items-center gap-2 rounded-full p-0.5 transition hover:bg-white/5"
+                className="ml-1 flex items-center gap-2 rounded-full p-0.5 transition hover:bg-[var(--overlay-weak)]"
               >
                 <Avatar name={viewer.displayName} src={viewer.avatarUrl} size="sm" />
               </button>
@@ -147,10 +157,15 @@ export function SiteHeader({ viewer, mockProvider }: { viewer: Viewer | null; mo
                   <MenuLink href="/settings" icon={<Settings size={15} />}>
                     Settings
                   </MenuLink>
+                  {viewer.role === "admin" && (
+                    <MenuLink href="/admin" icon={<ShieldCheck size={15} />}>
+                      Admin
+                    </MenuLink>
+                  )}
                   <button
                     onClick={signOut}
                     role="menuitem"
-                    className="flex w-full items-center gap-2.5 border-t border-[var(--border)] px-4 py-2.5 text-left text-sm text-dim transition hover:bg-white/5 hover:text-[var(--text)]"
+                    className="flex w-full items-center gap-2.5 border-t border-[var(--border)] px-4 py-2.5 text-left text-sm text-dim transition hover:bg-[var(--overlay-weak)] hover:text-[var(--text)]"
                   >
                     <LogOut size={15} /> Sign out
                   </button>
@@ -173,7 +188,7 @@ export function SiteHeader({ viewer, mockProvider }: { viewer: Viewer | null; mo
 
         <button
           onClick={() => setNavOpen((v) => !v)}
-          className="ml-1 rounded-lg p-2 text-dim transition hover:bg-white/5 md:hidden"
+          className="ml-1 rounded-lg p-2 text-dim transition hover:bg-[var(--overlay-weak)] md:hidden"
           aria-label={navOpen ? "Close menu" : "Open menu"}
         >
           {navOpen ? <X size={18} /> : <Menu size={18} />}
@@ -186,7 +201,7 @@ export function SiteHeader({ viewer, mockProvider }: { viewer: Viewer | null; mo
             <Link
               key={href}
               href={href}
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-dim transition hover:bg-white/5 hover:text-[var(--text)]"
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-dim transition hover:bg-[var(--overlay-weak)] hover:text-[var(--text)]"
             >
               <Icon size={16} />
               {label}
@@ -195,7 +210,7 @@ export function SiteHeader({ viewer, mockProvider }: { viewer: Viewer | null; mo
           {viewer && (
             <Link
               href="/create"
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-dim transition hover:bg-white/5 hover:text-[var(--text)]"
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-dim transition hover:bg-[var(--overlay-weak)] hover:text-[var(--text)]"
             >
               <Plus size={16} /> Create a character
             </Link>
@@ -219,7 +234,7 @@ function MenuLink({
     <Link
       href={href}
       role="menuitem"
-      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-dim transition hover:bg-white/5 hover:text-[var(--text)]"
+      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-dim transition hover:bg-[var(--overlay-weak)] hover:text-[var(--text)]"
     >
       {icon}
       {children}

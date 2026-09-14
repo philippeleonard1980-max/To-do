@@ -8,11 +8,11 @@ type Variant = "primary" | "ghost" | "outline" | "danger" | "subtle";
 const VARIANTS: Record<Variant, string> = {
   primary:
     "bg-violet-600 text-white hover:bg-violet-500 active:bg-violet-700 disabled:bg-violet-600/40",
-  ghost: "text-[var(--text-dim)] hover:text-[var(--text)] hover:bg-white/5",
+  ghost: "text-[var(--text-dim)] hover:text-[var(--text)] hover:bg-[var(--overlay-weak)]",
   outline:
-    "border border-[var(--border-strong)] text-[var(--text)] hover:bg-white/5 hover:border-violet-500/60",
+    "border border-[var(--border-strong)] text-[var(--text)] hover:bg-[var(--overlay-weak)] hover:border-violet-500/60",
   danger: "bg-rose-600/90 text-white hover:bg-rose-500",
-  subtle: "bg-white/[0.06] text-[var(--text)] hover:bg-white/[0.11]",
+  subtle: "bg-[var(--overlay-weak)] text-[var(--text)] hover:bg-[var(--overlay-strong)]",
 };
 
 const SIZES = {
@@ -129,10 +129,12 @@ export function Badge({
   tone?: "neutral" | "accent" | "warn";
   className?: string;
 }) {
+  // Tone colours come from theme tokens: the fixed violet-300 / amber-300 text
+  // these used to carry was unreadable on a light background.
   const tones = {
-    neutral: "bg-white/[0.07] text-[var(--text-dim)]",
-    accent: "bg-violet-500/15 text-violet-300",
-    warn: "bg-amber-500/15 text-amber-300",
+    neutral: "bg-[var(--overlay)] text-[var(--text-dim)]",
+    accent: "bg-[var(--tone-accent-bg)] text-[var(--tone-accent-text)]",
+    warn: "bg-[var(--tone-warn-bg)] text-[var(--tone-warn-text)]",
   };
   return (
     <span
@@ -155,9 +157,9 @@ export function Alert({
   tone?: "error" | "info" | "success";
 }) {
   const tones = {
-    error: "border-rose-500/40 bg-rose-500/10 text-rose-200",
-    info: "border-sky-500/40 bg-sky-500/10 text-sky-200",
-    success: "border-emerald-500/40 bg-emerald-500/10 text-emerald-200",
+    error: "border-[var(--tone-error-border)] bg-[var(--tone-error-bg)] text-[var(--tone-error-text)]",
+    info: "border-[var(--tone-info-border)] bg-[var(--tone-info-bg)] text-[var(--tone-info-text)]",
+    success: "border-[var(--tone-success-border)] bg-[var(--tone-success-bg)] text-[var(--tone-success-text)]",
   };
   return (
     <div role="alert" className={clsx("rounded-lg border px-3.5 py-2.5 text-sm", tones[tone])}>

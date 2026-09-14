@@ -112,7 +112,7 @@ export default async function DiscoverPage({
             className={clsx(
               "rounded-full px-3 py-1 text-xs transition",
               !tag
-                ? "bg-white/[0.12] font-medium text-[var(--text)]"
+                ? "bg-[var(--overlay-strong)] font-medium text-[var(--text)]"
                 : "border border-[var(--border)] text-dim hover:text-[var(--text)]",
             )}
           >
