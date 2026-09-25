@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   ArrowDown,
   Brain,
+  Radio,
   RefreshCw,
   Send,
   Settings2,
@@ -346,6 +347,16 @@ export function ChatView({
         <span className="hidden text-[11px] text-faint tabular-nums sm:inline">
           {credits} credits
         </span>
+
+        {!isGroup && (
+          <Link
+            href={`/live/${chat.id}`}
+            title="Talk out loud, with her 3D avatar"
+            className="flex items-center gap-1.5 rounded-lg border border-[var(--border-strong)] px-2.5 py-1.5 text-xs text-dim transition hover:border-violet-500/60 hover:text-[var(--text)]"
+          >
+            <Radio size={14} /> <span className="hidden sm:inline">Live</span>
+          </Link>
+        )}
 
         <button
           onClick={() => setShowSettings((v) => !v)}

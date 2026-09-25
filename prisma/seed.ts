@@ -24,11 +24,14 @@ interface SeedCharacter {
   exampleDialogue: string;
   accent: string;
   tags: string[];
+  /// Live-mode speech: pitch and pace give each of them a distinct read.
+  voice: { pitch: number; rate: number };
 }
 
 const CHARACTERS: SeedCharacter[] = [
   {
     name: "Wren Castellan",
+    voice: { pitch: 0.85, rate: 0.88 },
     tagline: "Night-shift archivist who knows which books lie.",
     accent: "indigo",
     tags: ["mystery", "slow burn", "original", "detective"],
@@ -45,6 +48,7 @@ const CHARACTERS: SeedCharacter[] = [
   },
   {
     name: "Sol Varga",
+    voice: { pitch: 0.75, rate: 1.18 },
     tagline: "Retired heist driver running a very honest garage.",
     accent: "amber",
     tags: ["crime", "comedy", "original", "found family"],
@@ -61,6 +65,7 @@ const CHARACTERS: SeedCharacter[] = [
   },
   {
     name: "Oriel",
+    voice: { pitch: 1.05, rate: 0.82 },
     tagline: "A lighthouse keeper who has not seen a ship in forty years.",
     accent: "sky",
     tags: ["fantasy", "melancholy", "original", "mystery"],
@@ -77,6 +82,7 @@ const CHARACTERS: SeedCharacter[] = [
   },
   {
     name: "Dr. Priya Anand",
+    voice: { pitch: 1.25, rate: 1.3 },
     tagline: "Field botanist, three weeks into a six-month expedition, already over it.",
     accent: "emerald",
     tags: ["adventure", "science", "original", "comedy"],
@@ -93,6 +99,7 @@ const CHARACTERS: SeedCharacter[] = [
   },
   {
     name: "Captain Idris Vale",
+    voice: { pitch: 0.7, rate: 0.95 },
     tagline: "Commands a salvage ship. Has opinions about salvage law.",
     accent: "teal",
     tags: ["sci-fi", "space", "original", "adventure"],
@@ -109,6 +116,7 @@ const CHARACTERS: SeedCharacter[] = [
   },
   {
     name: "Bex",
+    voice: { pitch: 0.95, rate: 1.05 },
     tagline: "Runs the worst-rated, most-beloved diner on the interstate.",
     accent: "rose",
     tags: ["slice of life", "comfort", "original", "found family"],
@@ -125,6 +133,7 @@ const CHARACTERS: SeedCharacter[] = [
   },
   {
     name: "Mirren Halloway",
+    voice: { pitch: 1.1, rate: 0.92 },
     tagline: "Inherited a house, a debt, and something in the cellar.",
     accent: "violet",
     tags: ["gothic", "horror", "mystery", "original"],
@@ -141,6 +150,7 @@ const CHARACTERS: SeedCharacter[] = [
   },
   {
     name: "Tobi Adeyemi",
+    voice: { pitch: 0.8, rate: 1.22 },
     tagline: "Chess coach who is not currently allowed near tournaments.",
     accent: "orange",
     tags: ["rivalry", "sports", "original", "comedy"],
@@ -157,6 +167,7 @@ const CHARACTERS: SeedCharacter[] = [
   },
   {
     name: "Nadia Kerr",
+    voice: { pitch: 1.0, rate: 0.98 },
     tagline: "Crisis negotiator on mandatory leave. Bad at leave.",
     accent: "indigo",
     tags: ["drama", "psychological", "original", "slow burn"],
@@ -173,6 +184,7 @@ const CHARACTERS: SeedCharacter[] = [
   },
   {
     name: "Fen",
+    voice: { pitch: 1.45, rate: 1.1 },
     tagline: "A house spirit who has strong feelings about your furniture.",
     accent: "emerald",
     tags: ["fantasy", "comedy", "cosy", "original"],
@@ -276,6 +288,7 @@ async function main() {
         greeting: spec.greeting,
         exampleDialogue: spec.exampleDialogue,
         accent: spec.accent,
+        voice: JSON.stringify({ ...spec.voice, voiceName: null, volume: 1 }),
         visibility: "public",
         isMature: false,
         // Spread the sample data across the trending curve so the sort is

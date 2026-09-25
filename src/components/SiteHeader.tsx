@@ -66,8 +66,8 @@ export function SiteHeader({ viewer, mockProvider }: { viewer: HeaderViewer | nu
     setMenuOpen(false);
   }, [pathname]);
 
-  // The chat view manages its own full-height layout and hides the chrome.
-  if (pathname?.startsWith("/chat/")) return null;
+  // The chat and live views manage their own full-height layout and chrome.
+  if (pathname?.startsWith("/chat/") || pathname?.startsWith("/live/")) return null;
 
   async function signOut() {
     await fetch("/api/auth/logout", { method: "POST" });

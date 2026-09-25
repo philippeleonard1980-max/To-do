@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { stringifyJson } from "@/lib/json";
 import { getViewer, requireViewer } from "@/lib/auth";
 import { badRequest, forbidden, json, notFound, route } from "@/lib/api";
 import { characterSchema } from "@/lib/validation";
@@ -93,6 +94,7 @@ export const PATCH = route(async (request: Request, { params }: Params) => {
         systemPromptOverride: body.systemPromptOverride || null,
         avatarUrl: body.avatarUrl || null,
         accent: body.accent,
+      voice: stringifyJson(body.voice),
         visibility: body.visibility,
         isMature,
         tags: { create: tagIds.map((tagId) => ({ tagId })) },

@@ -108,6 +108,10 @@ model Character {
   /// Advanced: replaces the generated system prompt entirely when set.
   systemPromptOverride String?
 
+  /// Speech settings for Live mode (JSON: voiceName, pitch, rate, volume).
+  /// The 3D avatar's colouring is derived from `accent`.
+  voice String @default("{}")
+
   // "public" | "unlisted" | "private"
   visibility String  @default("public")
   /// Flags themes intended for adult users (violence, dark topics).

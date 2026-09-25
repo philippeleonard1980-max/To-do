@@ -1,7 +1,7 @@
 import "server-only";
 
 import { prisma } from "./db";
-import { getProvider } from "./ai";
+import { getProviderForModel } from "./ai";
 import { parseJson } from "./json";
 import { forbidden, notFound } from "./api";
 import {
@@ -154,7 +154,7 @@ export async function updateMemory(chatId: string, plan: Plan, settings: ChatSet
       .join("\n\n")
       .slice(0, 24_000);
 
-    const provider = getProvider();
+    const provider = getProviderForModel(settings.model);
     const summary = await provider.complete({
       system:
         "You are a story archivist. You compress roleplay transcripts into dense, factual notes. Output only the summary text.",

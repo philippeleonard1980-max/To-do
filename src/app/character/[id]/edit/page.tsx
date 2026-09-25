@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getViewer } from "@/lib/auth";
 import { CharacterForm } from "@/components/CharacterForm";
+import { parseJson } from "@/lib/json";
 
 export const metadata = { title: "Edit character" };
 export const dynamic = "force-dynamic";
@@ -45,6 +46,7 @@ export default async function EditCharacterPage({ params }: { params: Promise<{ 
           visibility: character.visibility,
           isMature: character.isMature,
           tags: character.tags.map((t) => t.tag.name),
+          voice: parseJson(character.voice, { voiceName: null, pitch: 1.1, rate: 1, volume: 1 }),
         }}
       />
     </div>

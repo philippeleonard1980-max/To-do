@@ -37,6 +37,16 @@ export const characterSchema = z.object({
   visibility: z.enum(VISIBILITIES).default("public"),
   isMature: z.boolean().default(false),
   tags: z.array(trimmed(30).min(1)).max(10).default([]),
+  /// Live-mode speech settings. Ranges match the Web Speech API's.
+  voice: z
+    .object({
+      voiceName: trimmed(120).nullable().optional(),
+      pitch: z.number().min(0.1).max(2).default(1.1),
+      rate: z.number().min(0.1).max(2).default(1),
+      volume: z.number().min(0).max(1).default(1),
+      lang: trimmed(16).optional(),
+    })
+    .default({ pitch: 1.1, rate: 1, volume: 1 }),
 });
 
 export const personaSchema = z.object({

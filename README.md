@@ -59,6 +59,17 @@ Sign in as **demo@aitalk.local** / **demo1234**, or create your own account.
 - Plans (Free / Plus / Pro) with a monthly message-credit quota, per-model
   pricing, gated model access and feature ceilings.
 
+**Live mode** (`/live/:chatId`) — voice-first, with a 3D character
+- Speak to her and she answers out loud. Mic in via the Web Speech API, reply
+  streamed from the same pipeline as the text chat, spoken back with speech
+  synthesis. Barge-in works: start talking and she stops.
+- An original 3D character, built procedurally from Three.js primitives — no
+  model files to download or license. She breathes, blinks, tracks your
+  cursor, and her mouth is driven by the words actually being spoken.
+- Per-character pitch and pace, so each one has a distinct read.
+- Live and the text chat are two views of one conversation: memory, persona
+  and transcript are shared.
+
 **Admin panel** (`/admin`)
 - Moderation queue for user reports, character search with unpublish/delete,
   account management (suspend, change plan, grant or revoke admin), and an
@@ -75,6 +86,33 @@ Sign in as **demo@aitalk.local** / **demo1234**, or create your own account.
 - A reporting endpoint feeds a moderation queue.
 
 ---
+
+## Models
+
+Two vendors, selected per model rather than globally — a Claude model routes to
+Anthropic, a Gemini model to Google:
+
+| Model | Vendor | Plan |
+|---|---|---|
+| Sonnet 5 | Anthropic | free |
+| Haiku 4.5 | Anthropic | free |
+| Gemini 2.5 Flash | Google | free |
+| Gemini 2.5 Pro | Google | plus |
+| Opus 5 | Anthropic | plus |
+
+Set either key, both, or neither — a vendor with no key falls back to the
+offline model, so mixing is fine.
+
+```bash
+ANTHROPIC_API_KEY="sk-ant-..."
+GEMINI_API_KEY="..."          # aistudio.google.com/apikey — free tier available
+```
+
+**On Gemini and Google accounts:** a Gemini Advanced / Google One AI Premium
+subscription is a consumer product and does **not** grant API access. There is
+no OAuth scope that lets an app spend a subscription's inference. The API key
+above is a separate thing, from Google AI Studio, and it is what this app
+needs. Its free tier is enough to run everything here.
 
 ## Running without an API key
 
@@ -145,6 +183,28 @@ Component `redirect()` alone returns a 200 with a client-side hop, because
 headers are already flushed during streaming SSR.
 
 ---
+
+## Live mode notes
+
+Voice uses the browser's own Web Speech API, so there is no key, no server cost
+and nothing to install — but support is uneven, and the app reports this rather
+than assuming:
+
+| Browser | Her voice | Your mic |
+|---|---|---|
+| Chrome / Edge | yes | yes |
+| Safari | yes | partial |
+| Firefox | yes | no |
+
+Where the mic is unavailable you can still type to her and she answers aloud.
+Where speech synthesis is unavailable she falls back to captions. A device with
+no installed voices degrades quietly to captions rather than showing an error.
+
+The 3D character lives in `src/lib/avatar3d.ts` as a framework-free scene class
+(`setMouthOpen`, `setEmotion`, `lookAt`), with a thin React wrapper in
+`src/components/Avatar3D.tsx` that loads it via `next/dynamic` with `ssr:false`.
+It honours `prefers-reduced-motion`, and falls back to a placeholder if WebGL
+can't start. Her colouring derives from the character's accent colour.
 
 ## Admin panel and its security model
 

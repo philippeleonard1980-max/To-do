@@ -28,8 +28,13 @@ export const RESPONSE_LENGTH_TOKENS: Record<ResponseLength, number> = {
   long: 1200,
 };
 
+/** Which SDK serves a model. Routing happens in src/lib/ai/index.ts. */
+export const MODEL_VENDORS = ["anthropic", "gemini"] as const;
+export type ModelVendor = (typeof MODEL_VENDORS)[number];
+
 export interface ModelOption {
   id: string;
+  vendor: ModelVendor;
   label: string;
   blurb: string;
   /** Credits burned per generated reply. */
@@ -46,6 +51,7 @@ export interface ModelOption {
 export const MODELS: ModelOption[] = [
   {
     id: "claude-sonnet-5",
+    vendor: "anthropic",
     label: "Sonnet 5",
     blurb: "Balanced. The default for everyday roleplay.",
     cost: 1,
@@ -54,6 +60,7 @@ export const MODELS: ModelOption[] = [
   },
   {
     id: "claude-haiku-4-5-20251001",
+    vendor: "anthropic",
     label: "Haiku 4.5",
     blurb: "Fastest replies, lightest touch.",
     cost: 1,
@@ -61,7 +68,26 @@ export const MODELS: ModelOption[] = [
     contextWindow: 200_000,
   },
   {
+    id: "gemini-2.5-flash",
+    vendor: "gemini",
+    label: "Gemini 2.5 Flash",
+    blurb: "Google's fast model. Free tier available.",
+    cost: 1,
+    minPlan: "free",
+    contextWindow: 1_000_000,
+  },
+  {
+    id: "gemini-2.5-pro",
+    vendor: "gemini",
+    label: "Gemini 2.5 Pro",
+    blurb: "Google's most capable. Long memory, strong continuity.",
+    cost: 3,
+    minPlan: "plus",
+    contextWindow: 1_000_000,
+  },
+  {
     id: "claude-opus-5",
+    vendor: "anthropic",
     label: "Opus 5",
     blurb: "Most capable. Best long-form continuity.",
     cost: 4,

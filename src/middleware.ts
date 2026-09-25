@@ -18,6 +18,7 @@ import { SESSION_COOKIE } from "@/lib/session-cookie";
 const PROTECTED = [
   /^\/chats/,
   /^\/chat\//,
+  /^\/live\//,
   /^\/create/,
   /^\/personas/,
   /^\/settings/,

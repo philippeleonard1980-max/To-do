@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { ImagePlus, Loader2, Sparkles, X } from "lucide-react";
+import { ImagePlus, Loader2, Sparkles, Volume2, X } from "lucide-react";
 import clsx from "clsx";
 
 import { Alert, Badge, Button, Field, Input, Textarea } from "./ui";
@@ -24,6 +24,7 @@ export interface CharacterDraft {
   visibility: string;
   isMature: boolean;
   tags: string[];
+  voice: { voiceName: string | null; pitch: number; rate: number; volume: number };
 }
 
 export const EMPTY_DRAFT: CharacterDraft = {
@@ -40,6 +41,7 @@ export const EMPTY_DRAFT: CharacterDraft = {
   visibility: "public",
   isMature: false,
   tags: [],
+  voice: { voiceName: null, pitch: 1.1, rate: 1, volume: 1 },
 };
 
 export function CharacterForm({ initial, mode }: { initial: CharacterDraft; mode: "create" | "edit" }) {
@@ -402,6 +404,56 @@ export function CharacterForm({ initial, mode }: { initial: CharacterDraft; mode
               </span>
             </span>
           </label>
+        </div>
+
+        <div className="space-y-3 rounded-2xl border border-[var(--border)] p-4">
+          <div>
+            <p className="text-sm font-semibold">Voice</p>
+            <p className="mt-0.5 text-xs text-faint">
+              How they sound in Live mode. Speech comes from the visitor&apos;s own browser, so
+              the exact voice varies by device — pitch and pace carry across.
+            </p>
+          </div>
+
+          {(["pitch", "rate"] as const).map((key) => (
+            <div key={key}>
+              <div className="mb-1 flex items-center justify-between">
+                <span className="text-xs font-medium capitalize">{key}</span>
+                <span className="text-xs text-faint tabular-nums">
+                  {draft.voice[key].toFixed(2)}
+                </span>
+              </div>
+              <input
+                type="range"
+                min={0.5}
+                max={key === "pitch" ? 2 : 1.8}
+                step={0.05}
+                value={draft.voice[key]}
+                onChange={(e) =>
+                  set("voice", { ...draft.voice, [key]: Number(e.target.value) })
+                }
+                className="w-full accent-violet-500"
+              />
+            </div>
+          ))}
+
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="w-full"
+            onClick={async () => {
+              const { speak, loadVoices } = await import("@/lib/speech");
+              const voices = await loadVoices();
+              speak(
+                `Hello. I'm ${draft.name || "your character"}.`,
+                { ...draft.voice, lang: "en-US" },
+                voices,
+              );
+            }}
+          >
+            <Volume2 size={14} /> Preview voice
+          </Button>
         </div>
 
         <Button type="submit" size="lg" className="w-full" loading={busy}>

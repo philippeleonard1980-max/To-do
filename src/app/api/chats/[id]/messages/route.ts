@@ -3,7 +3,7 @@ import { requireViewer, type Viewer } from "@/lib/auth";
 import { badRequest, errorResponse, notFound } from "@/lib/api";
 import { sendMessageSchema } from "@/lib/validation";
 import { sseResponse } from "@/lib/sse";
-import { getProvider } from "@/lib/ai";
+import { getProviderForModel } from "@/lib/ai";
 import { refundCredits, spendCredits } from "@/lib/credits";
 import { needsCrisisResources } from "@/lib/safety";
 import { maxTokensFor } from "@/lib/prompt";
@@ -159,7 +159,7 @@ async function generate(opts: {
       },
     });
 
-    const provider = getProvider();
+    const provider = getProviderForModel(prepared.settings.model);
     let text = "";
     let tokensIn = 0;
     let tokensOut = 0;
@@ -267,12 +267,14 @@ async function maybeTitle(chatId: string, currentTitle: string, firstUserText: s
     const count = await prisma.message.count({ where: { chatId, role: "user" } });
     if (count !== 1) return;
 
-    const provider = getProvider();
+    // Titles always use the cheap model, whichever vendor serves it.
+    const titleModel = "claude-haiku-4-5-20251001";
+    const provider = getProviderForModel(titleModel);
     const title = await provider.complete({
       system:
         "You write very short chat titles. Reply with a title of at most 5 words. No quotes, no punctuation at the end.",
       messages: [{ role: "user", content: firstUserText.slice(0, 500) }],
-      model: "claude-haiku-4-5-20251001",
+      model: titleModel,
       temperature: 0.4,
       maxTokens: 24,
     });
