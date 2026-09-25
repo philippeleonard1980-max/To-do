@@ -13,10 +13,12 @@
     "db:push": "prisma db push",
     "db:seed": "node --experimental-strip-types prisma/seed.ts",
     "db:reset": "rm -f prisma/dev.db && prisma db push && npm run db:seed",
-    "setup": "prisma generate && prisma db push && npm run db:seed",
+    "setup": "node scripts/ensure-env.mjs && prisma generate && prisma db push && npm run db:seed",
     "admin:grant": "tsx scripts/grant-admin.ts",
     "smoke": "node scripts/smoke-crawl.mjs",
-    "security:check": "bash scripts/security-check.sh"
+    "security:check": "bash scripts/security-check.sh",
+    "predev": "node scripts/ensure-env.mjs",
+    "prebuild": "node scripts/ensure-env.mjs"
   },
   "prisma": {
     "seed": "node --experimental-strip-types prisma/seed.ts"

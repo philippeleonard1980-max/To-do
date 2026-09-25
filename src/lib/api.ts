@@ -38,6 +38,31 @@ export function errorResponse(error: unknown) {
       { status: 422 },
     );
   }
+  // The database has not been created yet. This is by far the most common
+  // first-run failure -- clone, `npm run dev`, register, 500 -- and a generic
+  // "something went wrong on our end" sends people hunting in the wrong place.
+  const prismaCode = (error as { code?: string })?.code;
+  if (prismaCode === "P2021" || prismaCode === "P2022" || prismaCode === "P1003") {
+    console.error("Database is not set up:", error);
+    return NextResponse.json(
+      {
+        error:
+          "The database hasn't been set up yet. Stop the server, run `npm run setup`, then start it again.",
+        code: "database-not-ready",
+      },
+      { status: 503 },
+    );
+  }
+  if (prismaCode === "P1001" || prismaCode === "P1000") {
+    return NextResponse.json(
+      {
+        error: "Can't reach the database. Check DATABASE_URL in your .env file.",
+        code: "database-unreachable",
+      },
+      { status: 503 },
+    );
+  }
+
   // A malformed request body is the client's error, not ours.
   if (error instanceof SyntaxError && /JSON/i.test(error.message)) {
     return NextResponse.json({ error: "Request body is not valid JSON." }, { status: 400 });

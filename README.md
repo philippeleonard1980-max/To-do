@@ -8,10 +8,16 @@ spending a cent.
 
 ```bash
 npm install
-cp .env.example .env
-npm run setup      # generate client, create the database, seed sample data
+npm run setup      # writes .env, creates the database, seeds sample data
 npm run dev        # http://localhost:3000
 ```
+
+On Windows PowerShell, run each line separately — `&&` is not a valid
+separator there.
+
+`npm run setup` creates `.env` for you from `.env.example` on first run, with
+a freshly generated `AUTH_SECRET`, so no two installs share a signing key. It
+is safe to re-run: an existing `.env` is never overwritten.
 
 Sign in as **demo@aitalk.local** / **demo1234**, or create your own account.
 
