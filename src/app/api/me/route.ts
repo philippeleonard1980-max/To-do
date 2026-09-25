@@ -5,16 +5,19 @@ import { settingsSchema } from "@/lib/validation";
 import { stringifyJson } from "@/lib/json";
 import { planAllowsModel, planInfo } from "@/lib/constants";
 import { isMockProvider } from "@/lib/ai";
+import { resolveUserKeys } from "@/lib/user-keys";
 
 export const runtime = "nodejs";
 
 export const GET = route(async () => {
   const viewer = await getViewer();
   if (!viewer) return json({ viewer: null, mockProvider: isMockProvider() });
+
+  const userKeys = await resolveUserKeys(viewer.id);
   return json({
     viewer,
     plan: planInfo(viewer.plan),
-    mockProvider: isMockProvider(),
+    mockProvider: isMockProvider(userKeys),
   });
 });
 

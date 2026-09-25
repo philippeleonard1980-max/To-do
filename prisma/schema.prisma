@@ -38,6 +38,11 @@ model User {
   // Viewer preferences (JSON: theme, defaultModel, temperature, ...)
   settings String @default("{}")
 
+  /// User-supplied model API keys, encrypted at rest (src/lib/crypto.ts).
+  /// Never returned to a client; only a masked preview is ever exposed.
+  anthropicKeyEnc String?
+  geminiKeyEnc    String?
+
   // Mature-theme opt-in, only meaningful once birthdate proves adulthood.
   birthdate       DateTime?
   allowMature     Boolean   @default(false)

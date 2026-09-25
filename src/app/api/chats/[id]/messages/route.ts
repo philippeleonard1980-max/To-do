@@ -3,7 +3,8 @@ import { requireViewer, type Viewer } from "@/lib/auth";
 import { badRequest, errorResponse, notFound } from "@/lib/api";
 import { sendMessageSchema } from "@/lib/validation";
 import { sseResponse } from "@/lib/sse";
-import { getProviderForModel } from "@/lib/ai";
+import { getProviderForModel, type VendorKeys } from "@/lib/ai";
+import { resolveUserKeys } from "@/lib/user-keys";
 import { refundCredits, spendCredits } from "@/lib/credits";
 import { needsCrisisResources } from "@/lib/safety";
 import { maxTokensFor } from "@/lib/prompt";
@@ -95,6 +96,10 @@ async function generate(opts: {
     messages = await loadMessages(chat.id);
   }
 
+  // The viewer's own key, when they have set one, takes precedence over the
+  // instance's env key for every call this turn makes.
+  const userKeys = await resolveUserKeys(viewer.id);
+
   const prepared = await prepareGeneration({
     chat,
     messages,
@@ -159,7 +164,7 @@ async function generate(opts: {
       },
     });
 
-    const provider = getProviderForModel(prepared.settings.model);
+    const provider = getProviderForModel(prepared.settings.model, userKeys);
     let text = "";
     let tokensIn = 0;
     let tokensOut = 0;
@@ -234,8 +239,8 @@ async function generate(opts: {
 
     // Housekeeping that must not delay the reply.
     await Promise.allSettled([
-      updateMemory(chat.id, viewer.plan, prepared.settings),
-      maybeTitle(chat.id, chat.title, body.content),
+      updateMemory(chat.id, viewer.plan, prepared.settings, userKeys),
+      maybeTitle(chat.id, chat.title, body.content, userKeys),
     ]);
   });
 }
@@ -261,7 +266,12 @@ async function discardVariant(messageId: string, index: number) {
  * Names a chat from its first real user turn. Uses the cheap path and never
  * throws — an unnamed chat is a cosmetic problem, not a failure.
  */
-async function maybeTitle(chatId: string, currentTitle: string, firstUserText: string) {
+async function maybeTitle(
+  chatId: string,
+  currentTitle: string,
+  firstUserText: string,
+  keys?: VendorKeys,
+) {
   try {
     if (!firstUserText.trim()) return;
     const count = await prisma.message.count({ where: { chatId, role: "user" } });
@@ -269,7 +279,7 @@ async function maybeTitle(chatId: string, currentTitle: string, firstUserText: s
 
     // Titles always use the cheap model, whichever vendor serves it.
     const titleModel = "claude-haiku-4-5-20251001";
-    const provider = getProviderForModel(titleModel);
+    const provider = getProviderForModel(titleModel, keys);
     const title = await provider.complete({
       system:
         "You write very short chat titles. Reply with a title of at most 5 words. No quotes, no punctuation at the end.",

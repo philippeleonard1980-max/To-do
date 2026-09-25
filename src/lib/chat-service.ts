@@ -1,7 +1,7 @@
 import "server-only";
 
 import { prisma } from "./db";
-import { getProviderForModel } from "./ai";
+import { getProviderForModel, type VendorKeys } from "./ai";
 import { parseJson } from "./json";
 import { forbidden, notFound } from "./api";
 import {
@@ -133,7 +133,12 @@ export async function currentMemory(chatId: string): Promise<{ summary: string; 
  * latency to the user's turn. Failures are swallowed: a missing summary
  * degrades continuity but must not break the chat.
  */
-export async function updateMemory(chatId: string, plan: Plan, settings: ChatSettings): Promise<void> {
+export async function updateMemory(
+  chatId: string,
+  plan: Plan,
+  settings: ChatSettings,
+  keys?: VendorKeys,
+): Promise<void> {
   try {
     const limit = PLAN_LIMITS[plan].memoryTurns;
     const total = await prisma.message.count({ where: { chatId } });
@@ -154,7 +159,7 @@ export async function updateMemory(chatId: string, plan: Plan, settings: ChatSet
       .join("\n\n")
       .slice(0, 24_000);
 
-    const provider = getProviderForModel(settings.model);
+    const provider = getProviderForModel(settings.model, keys);
     const summary = await provider.complete({
       system:
         "You are a story archivist. You compress roleplay transcripts into dense, factual notes. Output only the summary text.",

@@ -106,13 +106,36 @@ Anthropic, a Gemini model to Google:
 | Gemini 2.5 Pro | Google | plus |
 | Opus 5 | Anthropic | plus |
 
-Set either key, both, or neither — a vendor with no key falls back to the
-offline model, so mixing is fine.
+There are two ways to supply a key.
+
+**In the app** (no file editing): sign in, open **Settings → Your model keys**,
+and paste one. It is checked against the provider before being saved, stored
+encrypted, and used for your chats in preference to anything the server has.
+This is the easy path if you just want to run it on your own Gemini account.
+
+**In `.env`** (instance-wide default, used by anyone without their own key):
 
 ```bash
 ANTHROPIC_API_KEY="sk-ant-..."
 GEMINI_API_KEY="..."          # aistudio.google.com/apikey — free tier available
 ```
+
+Set either, both, or neither — a vendor with no key anywhere falls back to the
+offline model, so mixing is fine.
+
+How user-supplied keys are handled:
+
+- Encrypted at rest with AES-256-GCM, keyed off `AUTH_SECRET`
+  (`src/lib/crypto.ts`). Rotating `AUTH_SECRET` invalidates stored keys; users
+  re-enter them, which is the right failure mode.
+- Never returned to a browser — not even to the owner. Once saved a key can be
+  replaced or removed, never read back. Only a masked preview (`AIza…cdef`) is
+  shown. `scripts/security-check.sh` asserts this against the API, the settings
+  HTML and `/api/me`.
+- Validated with one real, tiny generation before storing, so a typo is caught
+  immediately instead of failing mid-conversation.
+- Provider errors are never echoed verbatim, since they can contain the
+  submitted key.
 
 **On Gemini and Google accounts:** a Gemini Advanced / Google One AI Premium
 subscription is a consumer product and does **not** grant API access. There is

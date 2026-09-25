@@ -420,14 +420,19 @@ export class AvatarScene {
     this.lookY += (this.lookTargetY - this.lookY) * Math.min(1, dt * 5);
     const drift = still ? 0 : Math.sin(t * 0.55) * 0.04;
     this.head.rotation.y = this.lookX * 0.42 + drift;
-    this.head.rotation.x = -this.lookY * 0.26 + (still ? 0 : Math.sin(t * 0.8) * 0.015);
+    // Sign convention, twice over: screen Y grows downward (cursor at the top
+    // gives lookY = -1), and a positive X rotation points the face DOWN. The
+    // two cancel, so lookY maps to rotation.x directly — negating it here is
+    // what made her look down when you looked up.
+    this.head.rotation.x = this.lookY * 0.26 + (still ? 0 : Math.sin(t * 0.8) * 0.015);
     this.head.rotation.z = this.lookX * 0.06;
     this.torso.rotation.y = this.lookX * 0.12;
 
     for (const pupil of [this.pupilL, this.pupilR]) {
       pupil.position.x =
         (pupil === this.pupilL ? -0.2 : 0.2) + this.lookX * 0.022;
-      pupil.position.y = 0.05 + this.lookY * 0.018;
+      // Pupils move in screen space, so this one does need the flip.
+      pupil.position.y = 0.05 - this.lookY * 0.018;
     }
 
     // Blink: a quick close/open on a randomised interval.

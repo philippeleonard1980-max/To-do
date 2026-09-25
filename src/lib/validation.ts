@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { ACCENTS, CHAT_MODES, RESPONSE_LENGTHS, SORTS, VISIBILITIES, PLANS } from "./constants";
+import { ACCENTS, CHAT_MODES, MODEL_VENDORS, RESPONSE_LENGTHS, SORTS, VISIBILITIES, PLANS } from "./constants";
 
 const trimmed = (max: number) => z.string().trim().max(max);
 
@@ -147,4 +147,17 @@ export const adminCharacterActionSchema = z.discriminatedUnion("action", [
 
 export const adminReportActionSchema = z.object({
   status: z.enum(["reviewed", "dismissed"]),
+});
+
+// --- User-supplied model API keys ------------------------------------------
+
+export const apiKeySchema = z.object({
+  vendor: z.enum(MODEL_VENDORS),
+  // Generous bounds: key formats differ by vendor and change over time, so
+  // the real check is the live call in src/lib/key-check.ts.
+  key: z.string().trim().min(8, "That key looks too short.").max(400, "That key looks too long."),
+});
+
+export const apiKeyDeleteSchema = z.object({
+  vendor: z.enum(MODEL_VENDORS),
 });

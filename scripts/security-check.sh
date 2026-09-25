@@ -80,6 +80,37 @@ chk "suspended session resolves to null" "None" "$SUSP"
 chk "suspended user blocked from writes" "401" "$(code -b $U -X POST -H "$JH" -d '{"name":"X","tags":[]}' $B/api/characters)"
 chk "admin unsuspends" "200" "$(code -b $A -X PATCH -H "$JH" --data-binary @$D/unsuspend.json $B/api/admin/users/$TARGET)"
 
+echo "--- stored API keys never leave the server ---"
+# Save a key directly (bypassing validation, which would reject a fake one),
+# then confirm no surface hands the plaintext back.
+FAKE="AIzaFAKEKEYVALUE1234567890abcdefGHIJ"
+node -e '
+const { PrismaClient } = require("@prisma/client");
+const { createCipheriv, randomBytes, scryptSync } = require("node:crypto");
+require("dotenv").config?.();
+const secret = process.env.AUTH_SECRET || require("fs").readFileSync(".env","utf8").match(/AUTH_SECRET="?([^"\n]+)/)[1];
+const key = scryptSync(secret, "aitalk.apikeys.v1", 32);
+const iv = randomBytes(12);
+const c = createCipheriv("aes-256-gcm", key, iv);
+const ct = Buffer.concat([c.update(process.argv[2], "utf8"), c.final()]);
+const enc = [iv.toString("base64url"), c.getAuthTag().toString("base64url"), ct.toString("base64url")].join(".");
+const p = new PrismaClient();
+p.user.update({ where: { email: "demo@aitalk.local" }, data: { geminiKeyEnc: enc } })
+ .then(() => p.$disconnect());
+' "$FAKE" 2>/dev/null
+
+KEYS_JSON=$(curl -s -b $A "$B/api/me/keys")
+echo "$KEYS_JSON" | grep -q "$FAKE" && chk "GET /api/me/keys withholds the plaintext key" "withheld" "LEAKED" || chk "GET /api/me/keys withholds the plaintext key" "withheld" "withheld"
+echo "$KEYS_JSON" | grep -q '"masked"' && chk "…but does return a masked preview" "yes" "yes" || chk "…but does return a masked preview" "yes" "no"
+
+SETTINGS_HTML=$(curl -s -b $A "$B/settings")
+echo "$SETTINGS_HTML" | grep -q "$FAKE" && chk "settings page HTML withholds the key" "withheld" "LEAKED" || chk "settings page HTML withholds the key" "withheld" "withheld"
+
+ME_JSON=$(curl -s -b $A "$B/api/me")
+echo "$ME_JSON" | grep -qiE "KeyEnc|$FAKE" && chk "/api/me exposes no key material" "clean" "LEAKED" || chk "/api/me exposes no key material" "clean" "clean"
+
+chk "another user cannot read your keys (401 when signed out)" "401" "$(code "$B/api/me/keys")"
+
 echo "--- audit trail ---"
 N=$(curl -s -b $A $B/admin/audit | grep -oE "user\.suspend|user\.unsuspend" | wc -l | tr -d ' ')
 if [ "$N" -ge 2 ]; then chk "audit recorded both actions" "ok" "ok"; else chk "audit recorded both actions" "ok" "only $N"; fi
